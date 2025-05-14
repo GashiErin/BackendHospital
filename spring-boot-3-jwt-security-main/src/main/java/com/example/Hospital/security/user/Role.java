@@ -17,7 +17,12 @@ import static com.example.Hospital.security.user.Permission.MANAGER_CREATE;
 import static com.example.Hospital.security.user.Permission.MANAGER_DELETE;
 import static com.example.Hospital.security.user.Permission.MANAGER_READ;
 import static com.example.Hospital.security.user.Permission.MANAGER_UPDATE;
+import static com.example.Hospital.security.user.Permission.THERAPIST_CREATE;
+import static com.example.Hospital.security.user.Permission.THERAPIST_DELETE;
+import static com.example.Hospital.security.user.Permission.THERAPIST_READ;
+import static com.example.Hospital.security.user.Permission.THERAPIST_UPDATE;
 
+@Getter
 @RequiredArgsConstructor
 public enum Role {
 
@@ -41,11 +46,18 @@ public enum Role {
                   MANAGER_DELETE,
                   MANAGER_CREATE
           )
+  ),
+  THERAPIST(
+          Set.of(
+                  THERAPIST_READ,
+                  THERAPIST_UPDATE,
+                  THERAPIST_DELETE,
+                  THERAPIST_CREATE
+          )
   )
 
   ;
 
-  @Getter
   private final Set<Permission> permissions;
 
   public List<SimpleGrantedAuthority> getAuthorities() {
