@@ -39,6 +39,18 @@ public class UserService {
         return repository.findAll();
     }
 
+    public User updateUser(Integer id, User newUserData) {
+        return repository.findById(id).map(user -> {
+            user.setFirstname(newUserData.getFirstname());
+            user.setLastname(newUserData.getLastname());
+            user.setEmail(newUserData.getEmail());
+            // Only update password if you want, and remember to encode!
+            // user.setPassword(passwordEncoder.encode(newUserData.getPassword()));
+            user.setRole(newUserData.getRole());
+            return repository.save(user);
+        }).orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
 
 
 
