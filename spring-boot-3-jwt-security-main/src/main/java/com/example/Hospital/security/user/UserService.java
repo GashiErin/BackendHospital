@@ -1,9 +1,12 @@
 package com.example.Hospital.security.user;
 
+import com.example.Hospital.security.token.TokenRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
 
 import java.security.Principal;
 import java.util.List;
@@ -14,6 +17,7 @@ public class UserService {
 
     private final PasswordEncoder passwordEncoder;
     private final UserRepository repository;
+    private final TokenRepository tokenRepository;
     public void changePassword(ChangePasswordRequest request, Principal connectedUser) {
 
         var user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
@@ -39,6 +43,31 @@ public class UserService {
         return repository.findAll();
     }
 
+    public User updateUser(Integer id, User newUserData) {
+        return repository.findById(id).map(user -> {
+            user.setFirstname(newUserData.getFirstname());
+            user.setLastname(newUserData.getLastname());
+            user.setEmail(newUserData.getEmail());
+            // Only update password if you want, and remember to encode!
+            // user.setPassword(passwordEncoder.encode(newUserData.getPassword()));
+            user.setRole(newUserData.getRole());
+            return repository.save(user);
+        }).orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+
+
+    @Transactional
+    public void deleteUser(Integer userId) {
+        var user = repository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Delete all tokens for this user
+        tokenRepository.deleteAllByUserId(userId);
+
+        // Delete the user
+        repository.delete(user);
+    }
 
 
 
