@@ -1,7 +1,9 @@
 package com.example.Hospital.security;
 
+import com.example.Hospital.security.auth.AuthenticationRequest;
 import com.example.Hospital.security.auth.AuthenticationService;
 import com.example.Hospital.security.auth.RegisterRequest;
+import com.example.Hospital.security.user.UserRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -21,27 +23,45 @@ public class SecurityApplication {
 
 	@Bean
 	public CommandLineRunner commandLineRunner(
-			AuthenticationService service
+			AuthenticationService service,
+			UserRepository userRepository
 	) {
 		return args -> {
-			var admin = RegisterRequest.builder()
-					.firstname("Admin")
-					.lastname("Admin")
-					.email("admin@mail.com")
-					.password("password")
-					.role(ADMIN)
-					.build();
-			System.out.println("Admin token: " + service.register(admin).getAccessToken());
+			if (userRepository.findByEmail("admin@mail.com").isEmpty()) {
+				var admin = RegisterRequest.builder()
+						.firstname("Admin")
+						.lastname("Admin")
+						.email("admin@mail.com")
+						.password("password")
+						.role(ADMIN)
+						.build();
+				System.out.println("Admin token: " + service.register(admin).getAccessToken());
+			} else {
+				System.out.println("Admin already exists");
+				var loginRequest = AuthenticationRequest.builder()
+						.email("admin@mail.com")
+						.password("password")
+						.build();
+				System.out.println("Admin token: " + service.authenticate(loginRequest).getAccessToken());
+			}
 
-			var manager = RegisterRequest.builder()
-					.firstname("Admin")
-					.lastname("Admin")
-					.email("manager@mail.com")
-					.password("password")
-					.role(MANAGER)
-					.build();
-			System.out.println("Manager token: " + service.register(manager).getAccessToken());
-
+			if (userRepository.findByEmail("manager@mail.com").isEmpty()) {
+				var manager = RegisterRequest.builder()
+						.firstname("Manager")
+						.lastname("Manager")
+						.email("manager@mail.com")
+						.password("password")
+						.role(MANAGER)
+						.build();
+				System.out.println("Manager token: " + service.register(manager).getAccessToken());
+			} else {
+				System.out.println("Manager already exists");
+				var loginRequest = AuthenticationRequest.builder()
+						.email("manager@mail.com")
+						.password("password")
+						.build();
+				System.out.println("Manager token: " + service.authenticate(loginRequest).getAccessToken());
+			}
 		};
 	}
 }
