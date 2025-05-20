@@ -29,6 +29,11 @@ public class AuthenticationService {
   private final AuthenticationManager authenticationManager;
 
   public AuthenticationResponse register(RegisterRequest request) {
+    // 🔒 Check if the email already exists
+    if (repository.findByEmail(request.getEmail()).isPresent()) {
+      throw new IllegalArgumentException("Email is already registered");
+    }
+
     // Use the provided role if available, otherwise default to USER
     Role role = request.getRole() != null ? request.getRole() : Role.USER;
 
@@ -54,31 +59,31 @@ public class AuthenticationService {
 
   public AuthenticationResponse authenticate(AuthenticationRequest request) {
     authenticationManager.authenticate(
-        new UsernamePasswordAuthenticationToken(
-            request.getEmail(),
-            request.getPassword()
-        )
+            new UsernamePasswordAuthenticationToken(
+                    request.getEmail(),
+                    request.getPassword()
+            )
     );
     var user = repository.findByEmail(request.getEmail())
-        .orElseThrow();
+            .orElseThrow();
     var jwtToken = jwtService.generateToken(user);
     var refreshToken = jwtService.generateRefreshToken(user);
     revokeAllUserTokens(user);
     saveUserToken(user, jwtToken);
     return AuthenticationResponse.builder()
-        .accessToken(jwtToken)
+            .accessToken(jwtToken)
             .refreshToken(refreshToken)
-        .build();
+            .build();
   }
 
   private void saveUserToken(User user, String jwtToken) {
     var token = Token.builder()
-        .user(user)
-        .token(jwtToken)
-        .tokenType(TokenType.BEARER)
-        .expired(false)
-        .revoked(false)
-        .build();
+            .user(user)
+            .token(jwtToken)
+            .tokenType(TokenType.BEARER)
+            .expired(false)
+            .revoked(false)
+            .build();
     tokenRepository.save(token);
   }
 
