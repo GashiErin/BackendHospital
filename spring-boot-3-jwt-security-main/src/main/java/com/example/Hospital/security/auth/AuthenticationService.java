@@ -29,12 +29,10 @@ public class AuthenticationService {
   private final AuthenticationManager authenticationManager;
 
   public AuthenticationResponse register(RegisterRequest request) {
-    // 🔒 Check if the email already exists
     if (repository.findByEmail(request.getEmail()).isPresent()) {
       throw new IllegalArgumentException("Email is already registered");
     }
 
-    // Use the provided role if available, otherwise default to USER
     Role role = request.getRole() != null ? request.getRole() : Role.USER;
 
     var user = User.builder()
@@ -43,6 +41,9 @@ public class AuthenticationService {
             .email(request.getEmail())
             .password(passwordEncoder.encode(request.getPassword()))
             .role(role)
+            .country(request.getCountry()) // nullable OK
+            .city(request.getCity())       // nullable OK
+            .about(request.getAbout())     // nullable OK
             .build();
 
     var savedUser = repository.save(user);
@@ -55,7 +56,6 @@ public class AuthenticationService {
             .refreshToken(refreshToken)
             .build();
   }
-
 
   public AuthenticationResponse authenticate(AuthenticationRequest request) {
     authenticationManager.authenticate(

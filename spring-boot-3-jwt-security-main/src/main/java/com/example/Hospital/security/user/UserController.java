@@ -44,4 +44,11 @@ public class UserController {
     }
 
 
+    @GetMapping("/me")
+    public ResponseEntity<User> getCurrentUser(Principal principal) {
+        User user = userService.getCurrentUser(principal.getName());
+        return ResponseEntity.ok(user);
+    }
+
+
 }
