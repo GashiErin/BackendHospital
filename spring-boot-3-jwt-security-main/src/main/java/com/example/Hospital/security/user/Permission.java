@@ -19,7 +19,13 @@ public enum Permission {
     THERAPIST_READ("therapist:read"),
     THERAPIST_UPDATE("therapist:update"),
     THERAPIST_CREATE("therapist:create"),
-    THERAPIST_DELETE("therapist:delete")
+    THERAPIST_DELETE("therapist:delete"),
+
+    NUTRICIST_READ("nutricist:read"),
+    NUTRICIST_UPDATE("nutricist:update"),
+    NUTRICIST_CREATE("nutricist:create"),
+    NUTRICIST_DELETE("nutricist:delete")
+
 
     ;
 

@@ -21,6 +21,12 @@ import static com.example.Hospital.security.user.Permission.THERAPIST_CREATE;
 import static com.example.Hospital.security.user.Permission.THERAPIST_DELETE;
 import static com.example.Hospital.security.user.Permission.THERAPIST_READ;
 import static com.example.Hospital.security.user.Permission.THERAPIST_UPDATE;
+import static com.example.Hospital.security.user.Permission.NUTRICIST_CREATE;
+import static com.example.Hospital.security.user.Permission.NUTRICIST_DELETE;
+import static com.example.Hospital.security.user.Permission.NUTRICIST_READ;
+import static com.example.Hospital.security.user.Permission.NUTRICIST_UPDATE;
+
+
 
 @Getter
 @RequiredArgsConstructor
@@ -37,6 +43,7 @@ public enum Role {
                   MANAGER_UPDATE,
                   MANAGER_DELETE,
                   MANAGER_CREATE
+
           )
   ),
   MANAGER(
@@ -53,6 +60,13 @@ public enum Role {
                   THERAPIST_UPDATE,
                   THERAPIST_DELETE,
                   THERAPIST_CREATE
+          )
+  ),  NUTRICIST(
+          Set.of(
+                  NUTRICIST_READ,
+                  NUTRICIST_UPDATE,
+                  NUTRICIST_DELETE,
+                  NUTRICIST_CREATE
           )
   )
 
