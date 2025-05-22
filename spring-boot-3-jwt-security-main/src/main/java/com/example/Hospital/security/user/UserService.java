@@ -44,6 +44,24 @@ public class UserService {
         return repository.findAll();
     }
 
+    public User updateUserProfile(Integer id, User newUserData) {
+        return repository.findById(id).map(user -> {
+            if (newUserData.getFirstname() != null) user.setFirstname(newUserData.getFirstname());
+            if (newUserData.getLastname() != null) user.setLastname(newUserData.getLastname());
+            if (newUserData.getEmail() != null) user.setEmail(newUserData.getEmail());
+            if (newUserData.getCity() != null) user.setCity(newUserData.getCity());
+            if (newUserData.getCountry() != null) user.setCountry(newUserData.getCountry());
+            if (newUserData.getAbout() != null) user.setAbout(newUserData.getAbout());
+
+            // Opsionale: nëse vendos të lejon përditësimin e password-it
+            // if (newUserData.getPassword() != null) {
+            //     user.setPassword(passwordEncoder.encode(newUserData.getPassword()));
+            // }
+
+            return repository.save(user);
+        }).orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
     public User updateUser(Integer id, User newUserData) {
         return repository.findById(id).map(user -> {
             user.setFirstname(newUserData.getFirstname());
@@ -51,11 +69,10 @@ public class UserService {
             user.setEmail(newUserData.getEmail());
             // Only update password if you want, and remember to encode!
             // user.setPassword(passwordEncoder.encode(newUserData.getPassword()));
-          //  user.setRole(newUserData.getRole());
+            //  user.setRole(newUserData.getRole());
             return repository.save(user);
         }).orElseThrow(() -> new RuntimeException("User not found"));
     }
-
 
 
     @Transactional

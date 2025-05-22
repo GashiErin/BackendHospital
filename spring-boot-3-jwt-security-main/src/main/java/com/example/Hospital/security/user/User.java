@@ -1,18 +1,18 @@
+
 package com.example.Hospital.security.user;
 
-import com.example.Hospital.security.token.Token;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.*;
+        import com.example.Hospital.security.token.Token;
+        import com.fasterxml.jackson.annotation.JsonIgnore;
+        import jakarta.persistence.*;
 
-import java.util.Collection;
-import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
+        import java.util.Collection;
+        import java.util.List;
+        import lombok.AllArgsConstructor;
+        import lombok.Builder;
+        import lombok.Data;
+        import lombok.NoArgsConstructor;
+        import org.springframework.security.core.GrantedAuthority;
+        import org.springframework.security.core.userdetails.UserDetails;
 
 @Data
 @Builder
@@ -23,33 +23,27 @@ import org.springframework.security.core.userdetails.UserDetails;
 public class User implements UserDetails {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @GeneratedValue
   private Integer id;
-
   private String firstname;
   private String lastname;
-
+  private String email;
+  private String password;
   private String country;
   private String city;
 
   @Column(length = 1000)
   private String about;
 
-  @Column(unique = true)
-  private String email;
-
-  @JsonIgnore
-  private String password;
 
   @Enumerated(EnumType.STRING)
   private Role role;
 
-  @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-  @JsonIgnore
-  @ToString.Exclude
+  @OneToMany(mappedBy = "user")
   private List<Token> tokens;
 
   @Override
+  @JsonIgnore
   public Collection<? extends GrantedAuthority> getAuthorities() {
     return role.getAuthorities();
   }

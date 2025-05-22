@@ -37,6 +37,17 @@ public class UserController {
         User updatedUser = userService.updateUser(id, user);
         return ResponseEntity.ok(updatedUser);
     }
+
+    @PutMapping("profile/{id}")
+    public ResponseEntity<User> updateUserProfile(
+            @PathVariable Integer id,
+            @RequestBody User user
+    ) {
+        User updatedUser = userService.updateUserProfile(id, user);
+        return ResponseEntity.ok(updatedUser);
+    }
+
+
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable Integer id) {
         userService.deleteUser(id);
