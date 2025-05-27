@@ -1,5 +1,6 @@
 package com.example.Hospital.security.auth;
 
+import com.example.Hospital.security.user.Role;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,4 +17,5 @@ public class AuthenticationResponse {
   private String accessToken;
   @JsonProperty("refresh_token")
   private String refreshToken;
+  private Role role;
 }
