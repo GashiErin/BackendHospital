@@ -1,14 +1,15 @@
 package com.example.Hospital.security.user;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Getter
-@Setter
+@Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class ChangePasswordRequest {
-
     private String currentPassword;
     private String newPassword;
     private String confirmationPassword;

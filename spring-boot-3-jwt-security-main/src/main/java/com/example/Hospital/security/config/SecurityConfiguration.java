@@ -42,13 +42,13 @@ public class SecurityConfiguration {
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final AuthenticationProvider authenticationProvider;
     private final LogoutHandler logoutHandler;
-    private final CorsConfigurationSource corsConfigurationSource; // Injected from CorsConfig
+    private final CorsConfigurationSource corsConfigurationSource;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
-                .cors(cors -> cors.configurationSource(corsConfigurationSource)) // use the CorsConfig bean
+                .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .authorizeHttpRequests(req ->
                         req.requestMatchers(WHITE_LIST_URL).permitAll()
                                 .requestMatchers("/api/v1/management/**").hasAnyRole(Role.ADMIN.name(), Role.MANAGER.name())
@@ -57,6 +57,7 @@ public class SecurityConfiguration {
                                 .requestMatchers(PUT, "/api/v1/management/**").hasAnyAuthority(Permission.ADMIN_UPDATE.name(), Permission.MANAGER_UPDATE.name(), Permission.THERAPIST_UPDATE.name())
                                 .requestMatchers(DELETE, "/api/v1/management/**").hasAnyAuthority(Permission.ADMIN_DELETE.name(), Permission.MANAGER_DELETE.name(), Permission.THERAPIST_DELETE.name())
                                 .requestMatchers(GET, "/api/v1/auth/**").hasAnyAuthority(Permission.ADMIN_READ.name(), Permission.MANAGER_READ.name(), Permission.THERAPIST_READ.name())
+                                .requestMatchers(PATCH, "/api/v1/users/change-password").authenticated()
                                 .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
