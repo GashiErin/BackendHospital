@@ -87,6 +87,15 @@ public class UserController {
         }
     }
 
+    @PutMapping("/profile/{id}")
+    public ResponseEntity<User> updateUserProfileById(
+            @PathVariable Integer id,
+            @RequestBody User user
+    ) {
+        User updatedUser = userService.updateUserProfile(id, user);
+        return ResponseEntity.ok(updatedUser);
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable Integer id) {
         userService.deleteUser(id);
@@ -97,5 +106,17 @@ public class UserController {
     public ResponseEntity<User> getCurrentUser(Principal principal) {
         User user = userService.getCurrentUser(principal.getName());
         return ResponseEntity.ok(user);
+    }
+
+    @GetMapping("/role/{role}")
+    public ResponseEntity<List<User>> getUsersByRole(@PathVariable Role role) {
+        try {
+            List<User> users = userService.getUsersByRole(role);
+            return ResponseEntity.ok(users);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
 }
