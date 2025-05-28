@@ -28,6 +28,13 @@ public class AppointmentController {
             @RequestParam LocalDateTime appointmentDateTime,
             @RequestParam AppointmentType type,
             @RequestParam(required = false) String notes) {
+
+        System.out.println("Creating appointment with params: " +
+                "clientId=" + clientId +
+                ", professionalId=" + professionalId +
+                ", dateTime=" + appointmentDateTime +
+                ", type=" + type);
+
         return ResponseEntity.ok(appointmentService.createAppointment(
                 clientId, professionalId, appointmentDateTime, type, notes));
     }
@@ -63,12 +70,33 @@ public class AppointmentController {
     @PatchMapping("/{id}/status")
     public ResponseEntity<Appointment> updateAppointmentStatus(
             @PathVariable Integer id,
-            @RequestParam AppointmentStatus status) {
-        return ResponseEntity.ok(appointmentService.updateAppointmentStatus(id, status));
+            @RequestParam AppointmentStatus status,
+            Authentication authentication) {
+
+        // Log the incoming request
+        System.out.println("Updating appointment status: id=" + id + ", status=" + status);
+
+        // Verify the user has permission (is the professional for this appointment)
+        User user = userService.findByEmail(authentication.getName())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Update the status
+        Appointment updatedAppointment = appointmentService.updateAppointmentStatus(id, status);
+
+        // Log the result
+        System.out.println("Appointment status updated successfully: " + updatedAppointment.getId());
+
+        return ResponseEntity.ok(updatedAppointment);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteAppointment(@PathVariable Integer id) {
+    public ResponseEntity<Void> deleteAppointment(
+            @PathVariable Integer id,
+            Authentication authentication) {
+
+        User user = userService.findByEmail(authentication.getName())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
         appointmentService.deleteAppointment(id);
         return ResponseEntity.noContent().build();
     }
