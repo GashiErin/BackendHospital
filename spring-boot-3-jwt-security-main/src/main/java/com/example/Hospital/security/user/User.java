@@ -1,18 +1,18 @@
-
 package com.example.Hospital.security.user;
 
-        import com.example.Hospital.security.token.Token;
-        import com.fasterxml.jackson.annotation.JsonIgnore;
-        import jakarta.persistence.*;
+import com.example.Hospital.security.token.Token;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.persistence.*;
 
-        import java.util.Collection;
-        import java.util.List;
-        import lombok.AllArgsConstructor;
-        import lombok.Builder;
-        import lombok.Data;
-        import lombok.NoArgsConstructor;
-        import org.springframework.security.core.GrantedAuthority;
-        import org.springframework.security.core.userdetails.UserDetails;
+import java.util.Collection;
+import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 @Data
 @Builder
@@ -20,6 +20,7 @@ package com.example.Hospital.security.user;
 @AllArgsConstructor
 @Entity
 @Table(name = "_user")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class User implements UserDetails {
 
   @Id
@@ -28,6 +29,8 @@ public class User implements UserDetails {
   private String firstname;
   private String lastname;
   private String email;
+  
+  @JsonIgnore
   private String password;
   private String country;
   private String city;
@@ -35,11 +38,11 @@ public class User implements UserDetails {
   @Column(length = 1000)
   private String about;
 
-
   @Enumerated(EnumType.STRING)
   private Role role;
 
   @OneToMany(mappedBy = "user")
+  @JsonIgnore
   private List<Token> tokens;
 
   @Override
@@ -49,31 +52,37 @@ public class User implements UserDetails {
   }
 
   @Override
+  @JsonIgnore
   public String getPassword() {
     return password;
   }
 
   @Override
+  @JsonIgnore
   public String getUsername() {
     return email;
   }
 
   @Override
+  @JsonIgnore
   public boolean isAccountNonExpired() {
     return true;
   }
 
   @Override
+  @JsonIgnore
   public boolean isAccountNonLocked() {
     return true;
   }
 
   @Override
+  @JsonIgnore
   public boolean isCredentialsNonExpired() {
     return true;
   }
 
   @Override
+  @JsonIgnore
   public boolean isEnabled() {
     return true;
   }

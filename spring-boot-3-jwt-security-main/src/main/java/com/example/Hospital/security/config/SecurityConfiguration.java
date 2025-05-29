@@ -36,7 +36,9 @@ public class SecurityConfiguration {
             "/configuration/security",
             "/swagger-ui/**",
             "/webjars/**",
-            "/swagger-ui.html"
+            "/swagger-ui.html",
+            "/ws/**",  // Add WebSocket endpoint
+            "/ws"      // Add WebSocket endpoint without wildcard
     };
 
     private final JwtAuthenticationFilter jwtAuthFilter;
@@ -58,6 +60,13 @@ public class SecurityConfiguration {
                                 .requestMatchers(DELETE, "/api/v1/management/**").hasAnyAuthority(Permission.ADMIN_DELETE.name(), Permission.MANAGER_DELETE.name(), Permission.THERAPIST_DELETE.name())
                                 .requestMatchers(GET, "/api/v1/auth/**").hasAnyAuthority(Permission.ADMIN_READ.name(), Permission.MANAGER_READ.name(), Permission.THERAPIST_READ.name())
                                 .requestMatchers(PATCH, "/api/v1/users/change-password").authenticated()
+                                // Add chat endpoints security
+                                .requestMatchers("/api/v1/chat/**").authenticated()
+                                .requestMatchers(GET, "/api/v1/chat/rooms").authenticated()
+                                .requestMatchers(POST, "/api/v1/chat/rooms/create").authenticated()
+                                .requestMatchers(GET, "/api/v1/chat/messages/**").authenticated()
+                                .requestMatchers(POST, "/api/v1/chat/messages/send").authenticated()
+                                .requestMatchers(PUT, "/api/v1/chat/messages/*/read").authenticated()
                                 .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
