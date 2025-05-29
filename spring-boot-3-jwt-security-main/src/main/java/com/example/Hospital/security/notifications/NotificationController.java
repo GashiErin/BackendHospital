@@ -13,11 +13,11 @@ import java.util.List;
 @RequestMapping("/api/notifications")
 @RequiredArgsConstructor
 public class NotificationController {
-    private final com.example.Hospital.security.notification.NotificationService notificationService;
+    private final com.example.Hospital.security.notifications.NotificationService notificationService;
     private final UserService userService;
 
     @GetMapping
-    public ResponseEntity<List<com.example.Hospital.security.notification.Notification>> getUserNotifications(Authentication authentication) {
+    public ResponseEntity<List<com.example.Hospital.security.notifications.Notification>> getUserNotifications(Authentication authentication) {
         User user = userService.findByEmail(authentication.getName())
                 .orElseThrow(() -> new RuntimeException("User not found"));
         return ResponseEntity.ok(notificationService.getUserNotifications(user.getId()));
@@ -31,7 +31,7 @@ public class NotificationController {
     }
 
     @PutMapping("/{notificationId}/mark-read")
-    public ResponseEntity<com.example.Hospital.security.notification.Notification> markNotificationAsRead(
+    public ResponseEntity<com.example.Hospital.security.notifications.Notification> markNotificationAsRead(
             @PathVariable Integer notificationId,
             Authentication authentication) {
         User user = userService.findByEmail(authentication.getName())

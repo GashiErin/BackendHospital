@@ -1,7 +1,5 @@
 package com.example.Hospital.security.appointment;
 
-import com.example.Hospital.security.notification.NotificationService;
-import com.example.Hospital.security.notification.NotificationType;
 import com.example.Hospital.security.user.User;
 import com.example.Hospital.security.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +15,7 @@ import java.util.List;
 public class AppointmentService {
     private final AppointmentRepository appointmentRepository;
     private final UserRepository userRepository;
-    private final NotificationService notificationService;
+    private final com.example.Hospital.security.notifications.NotificationService notificationService;
 
     public Appointment createAppointment(Integer clientId, Integer professionalId,
                                          LocalDateTime appointmentDateTime, AppointmentType type, String notes) {
@@ -60,7 +58,7 @@ public class AppointmentService {
                 client.getFirstname(),
                 client.getLastname(),
                 appointmentDateTime.toString());
-        notificationService.createNotification(professional, profMessage, NotificationType.APPOINTMENT_BOOKED);
+        notificationService.createNotification(professional, profMessage, com.example.Hospital.security.notifications.NotificationType.APPOINTMENT_BOOKED);
 
         // Send confirmation notification to the client
         String clientMessage = String.format("Your %s appointment with %s %s has been scheduled for %s",
@@ -68,7 +66,7 @@ public class AppointmentService {
                 professional.getFirstname(),
                 professional.getLastname(),
                 appointmentDateTime.toString());
-        notificationService.createNotification(client, clientMessage, NotificationType.APPOINTMENT_BOOKED);
+        notificationService.createNotification(client, clientMessage, com.example.Hospital.security.notifications.NotificationType.APPOINTMENT_BOOKED);
 
         return savedAppointment;
     }
@@ -109,17 +107,17 @@ public class AppointmentService {
                 status.toString());
 
         if (status == AppointmentStatus.COMPLETED) {
-            notificationService.createNotification(appointment.getClient(), message, NotificationType.APPOINTMENT_UPDATED);
+            notificationService.createNotification(appointment.getClient(), message, com.example.Hospital.security.notifications.NotificationType.APPOINTMENT_UPDATED);
         } else if (status == AppointmentStatus.CANCELLED) {
             // Notify client
-            notificationService.createNotification(appointment.getClient(), message, NotificationType.APPOINTMENT_CANCELLED);
+            notificationService.createNotification(appointment.getClient(), message, com.example.Hospital.security.notifications.NotificationType.APPOINTMENT_CANCELLED);
 
             // Notify professional
             String profMessage = String.format("Appointment with %s %s for %s has been cancelled",
                     appointment.getClient().getFirstname(),
                     appointment.getClient().getLastname(),
                     appointment.getAppointmentDateTime().toString());
-            notificationService.createNotification(appointment.getProfessional(), profMessage, NotificationType.APPOINTMENT_CANCELLED);
+            notificationService.createNotification(appointment.getProfessional(), profMessage, com.example.Hospital.security.notifications.NotificationType.APPOINTMENT_CANCELLED);
         }
 
         return appointment;
@@ -134,13 +132,13 @@ public class AppointmentService {
                 appointment.getProfessional().getFirstname(),
                 appointment.getProfessional().getLastname(),
                 appointment.getAppointmentDateTime().toString());
-        notificationService.createNotification(appointment.getClient(), clientMessage, NotificationType.APPOINTMENT_CANCELLED);
+        notificationService.createNotification(appointment.getClient(), clientMessage, com.example.Hospital.security.notifications.NotificationType.APPOINTMENT_CANCELLED);
 
         String profMessage = String.format("Appointment with %s %s scheduled for %s has been cancelled",
                 appointment.getClient().getFirstname(),
                 appointment.getClient().getLastname(),
                 appointment.getAppointmentDateTime().toString());
-        notificationService.createNotification(appointment.getProfessional(), profMessage, NotificationType.APPOINTMENT_CANCELLED);
+        notificationService.createNotification(appointment.getProfessional(), profMessage, com.example.Hospital.security.notifications.NotificationType.APPOINTMENT_CANCELLED);
 
         appointmentRepository.deleteById(appointmentId);
     }

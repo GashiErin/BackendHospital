@@ -1,16 +1,15 @@
-package com.example.Hospital.security.notification;
+package com.example.Hospital.security.notifications;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-public interface NotificationRepository extends JpaRepository<com.example.Hospital.security.notification.Notification, Integer> {
-    List<com.example.Hospital.security.notification.Notification> findByRecipientIdOrderByCreatedAtDesc(Integer recipientId);
+@Repository
+public interface NotificationRepository extends JpaRepository<Notification, Integer> {
+    List<Notification> findByRecipientIdOrderByCreatedAtDesc(Integer recipientId);
 
-    @Query("SELECT COUNT(n) FROM Notification n WHERE n.recipient.id = :userId AND n.isRead = false")
-    long countUnreadNotifications(@Param("userId") Integer userId);
+    List<Notification> findByRecipientIdAndReadStatusFalseOrderByCreatedAtDesc(Integer recipientId);
 
-    List<com.example.Hospital.security.notification.Notification> findByRecipientIdAndIsReadOrderByCreatedAtDesc(Integer recipientId, boolean isRead);
+    long countByRecipientIdAndReadStatusFalse(Integer recipientId);
 }
