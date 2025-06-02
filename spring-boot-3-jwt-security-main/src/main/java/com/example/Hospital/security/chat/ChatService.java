@@ -105,6 +105,26 @@ public class ChatService {
     }
 
     @Transactional
+    public void clearChatMessages(Long chatRoomId, Integer userId) {
+        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
+                .orElseThrow(() -> new RuntimeException("Chat room not found"));
+
+        // Verify user is a participant in the chat
+        if (!chatRoom.getUser().getId().equals(userId) &&
+                !chatRoom.getProfessional().getId().equals(userId)) {
+            throw new RuntimeException("User is not a participant in this chat room");
+        }
+
+        // Delete all messages in the chat room
+        messageRepository.deleteByChatRoomId(chatRoomId);
+
+        // Reset unread count
+        chatRoom.setUnreadCount(0);
+        chatRoomRepository.save(chatRoom);
+    }
+
+
+    @Transactional
     public void markMessagesAsRead(Long chatRoomId, Integer userId) {
         ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
                 .orElseThrow(() -> new RuntimeException("Chat room not found"));

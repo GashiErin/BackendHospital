@@ -36,6 +36,14 @@ public class ChatController {
         chatService.markMessagesAsRead(chatRoomId, user.getId());
     }
 
+    @DeleteMapping("/messages/{chatRoomId}/clear")
+    public void clearChatMessages(
+            @PathVariable Long chatRoomId,
+            @AuthenticationPrincipal User user
+    ) {
+        chatService.clearChatMessages(chatRoomId, user.getId());
+    }
+
     @PostMapping("/messages/send")
     public Message sendMessage(@RequestBody ChatMessageDTO message) {
         return chatService.sendMessage(
@@ -43,5 +51,7 @@ public class ChatController {
                 message.getReceiverId(),
                 message.getContent()
         );
+
+
     }
 }

@@ -9,4 +9,6 @@ import java.util.List;
 public interface MessageRepository extends JpaRepository<Message, Integer> {
     List<Message> findByChatRoomIdOrderBySentAtAsc(Long chatRoomId);  // Changed to Long
     List<Message> findBySenderIdAndReceiverId(Integer senderId, Integer receiverId);
+
+    void deleteByChatRoomId(Long chatRoomId);
 }
