@@ -2,6 +2,7 @@ package com.example.Hospital.security.notifications;
 
 import com.example.Hospital.security.user.User;
 import lombok.RequiredArgsConstructor;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,6 +13,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class NotificationService {
     private final NotificationRepository notificationRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Transactional
     public Notification createNotification(User recipient, String message, NotificationType type) {
@@ -23,7 +25,15 @@ public class NotificationService {
                 .readStatus(false)
                 .createdAt(LocalDateTime.now())
                 .build();
-        return notificationRepository.save(notification);
+        notification = notificationRepository.save(notification);
+
+        // Send real-time notification through WebSocket
+        messagingTemplate.convertAndSend(
+                "/topic/notifications/" + recipient.getId(),
+                notification
+        );
+
+        return notification;
     }
 
     @Transactional(readOnly = true)
