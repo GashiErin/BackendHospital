@@ -16,9 +16,10 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "appointments")
 public class Appointment {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "client_id", nullable = false)
@@ -46,4 +47,9 @@ public class Appointment {
 
     @Column(nullable = false)
     private Integer creditsCost;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+    }
 }
