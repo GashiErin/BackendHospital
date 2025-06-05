@@ -40,4 +40,15 @@ public class AppointmentHistoryService {
     public List<AppointmentHistory> getHistoriesByClient(Long clientId) {
         return historyRepository.findByAppointment_Client_Id(clientId);
     }
+
+    public AppointmentHistory updateHistory(Long historyId, String updatedText) {
+        AppointmentHistory existing = historyRepository.findById(historyId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "History not found"));
+
+        existing.setHistoryText(updatedText);
+        // (optional) update createdAt to current time if you want to log edits
+        existing.setCreatedAt(LocalDateTime.now());
+
+        return historyRepository.save(existing);
+    }
 }

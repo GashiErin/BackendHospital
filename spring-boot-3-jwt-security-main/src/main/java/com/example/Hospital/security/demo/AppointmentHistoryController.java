@@ -37,4 +37,12 @@ public class AppointmentHistoryController {
         List<AppointmentHistory> histories = historyService.getHistoriesByClient(clientId);
         return ResponseEntity.ok(histories);
     }
+
+    @PutMapping("/appointments/history/{historyId}")
+    public ResponseEntity<AppointmentHistory> updateHistory(
+            @PathVariable Long historyId,
+            @RequestBody HistoryRequest request) {
+        AppointmentHistory updated = historyService.updateHistory(historyId, request.getHistoryText());
+        return ResponseEntity.ok(updated);
+    }
 }
