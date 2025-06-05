@@ -45,6 +45,19 @@ public class User implements UserDetails {
   @JsonIgnore
   private List<Token> tokens;
 
+  @Column(nullable = false)
+  private Integer credits = 0;
+
+
+
+  public Integer getCredits() {
+    return credits;
+  }
+
+  public void setCredits(Integer credits) {
+    this.credits = credits;
+  }
+
   @Override
   @JsonIgnore
   public Collection<? extends GrantedAuthority> getAuthorities() {

@@ -44,6 +44,7 @@ public class AuthenticationService {
             .country(request.getCountry()) // nullable OK
             .city(request.getCity())       // nullable OK
             .about(request.getAbout())     // nullable OK
+            .credits(0)
             .build();
 
     var savedUser = repository.save(user);

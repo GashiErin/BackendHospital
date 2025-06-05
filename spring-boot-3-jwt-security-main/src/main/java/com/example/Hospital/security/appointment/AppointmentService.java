@@ -1,5 +1,6 @@
 package com.example.Hospital.security.appointment;
 
+import com.example.Hospital.security.exception.InsufficientCreditsException;
 import com.example.Hospital.security.user.User;
 import com.example.Hospital.security.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,8 @@ public class AppointmentService {
     private final UserRepository userRepository;
     private final com.example.Hospital.security.notifications.NotificationService notificationService;
 
+    private static final int APPOINTMENT_CREDIT_COST = 50;
+
     public Appointment createAppointment(Integer clientId, Integer professionalId,
                                          LocalDateTime appointmentDateTime, AppointmentType type, String notes) {
         User client = userRepository.findById(clientId)
@@ -25,18 +28,20 @@ public class AppointmentService {
         User professional = userRepository.findById(professionalId)
                 .orElseThrow(() -> new RuntimeException("Professional not found"));
 
-        // Add debug logging
-        System.out.println("Creating appointment with:");
-        System.out.println("Client ID: " + clientId);
-        System.out.println("Professional ID: " + professionalId);
-        System.out.println("DateTime: " + appointmentDateTime);
-        System.out.println("Type: " + type);
+        // Check if client has enough credits
+        if (client.getCredits() < APPOINTMENT_CREDIT_COST) {
+            throw new InsufficientCreditsException("Insufficient credits. Required: " + APPOINTMENT_CREDIT_COST + ", Available: " + client.getCredits());
+        }
 
         // Check if the professional already has an appointment at this time
         if (appointmentRepository.existsByProfessionalIdAndAppointmentDateTime(
                 professional.getId(), appointmentDateTime)) {
             throw new RuntimeException("Professional is not available at this time");
         }
+
+        // Deduct credits from client
+        client.setCredits(client.getCredits() - APPOINTMENT_CREDIT_COST);
+        userRepository.save(client);
 
         Appointment appointment = Appointment.builder()
                 .client(client)
@@ -46,37 +51,34 @@ public class AppointmentService {
                 .status(AppointmentStatus.SCHEDULED)
                 .notes(notes)
                 .createdAt(LocalDateTime.now())
+                .creditsCost(APPOINTMENT_CREDIT_COST)
                 .build();
 
-        // Add debug logging for saved appointment
         Appointment savedAppointment = appointmentRepository.save(appointment);
-        System.out.println("Saved appointment with ID: " + savedAppointment.getId());
 
-        // Send notification to the professional
+        // Send notifications
         String profMessage = String.format("New %s appointment scheduled with %s %s for %s",
                 type.toString(),
                 client.getFirstname(),
                 client.getLastname(),
                 appointmentDateTime.toString());
-        notificationService.createNotification(professional, profMessage, com.example.Hospital.security.notifications.NotificationType.APPOINTMENT_BOOKED);
+        notificationService.createNotification(professional, profMessage,
+                com.example.Hospital.security.notifications.NotificationType.APPOINTMENT_BOOKED);
 
-        // Send confirmation notification to the client
-        String clientMessage = String.format("Your %s appointment with %s %s has been scheduled for %s",
+        String clientMessage = String.format("Your %s appointment with %s %s has been scheduled for %s. %d credits have been deducted from your account.",
                 type.toString(),
                 professional.getFirstname(),
                 professional.getLastname(),
-                appointmentDateTime.toString());
-        notificationService.createNotification(client, clientMessage, com.example.Hospital.security.notifications.NotificationType.APPOINTMENT_BOOKED);
+                appointmentDateTime.toString(),
+                APPOINTMENT_CREDIT_COST);
+        notificationService.createNotification(client, clientMessage,
+                com.example.Hospital.security.notifications.NotificationType.APPOINTMENT_BOOKED);
 
         return savedAppointment;
     }
 
     public List<Appointment> getClientAppointments(Integer clientId) {
-        // Add debug logging
-        System.out.println("Fetching appointments for client ID: " + clientId);
-        List<Appointment> appointments = appointmentRepository.findByClientId(clientId);
-        System.out.println("Found " + appointments.size() + " appointments");
-        return appointments;
+        return appointmentRepository.findByClientId(clientId);
     }
 
     public List<Appointment> getProfessionalAppointments(Integer professionalId) {
@@ -97,27 +99,26 @@ public class AppointmentService {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new RuntimeException("Appointment not found"));
 
-        AppointmentStatus oldStatus = appointment.getStatus();
         appointment.setStatus(status);
         appointment = appointmentRepository.save(appointment);
 
-        // Send notifications based on status update
         String message = String.format("Your appointment scheduled for %s has been marked as %s",
                 appointment.getAppointmentDateTime().toString(),
                 status.toString());
 
         if (status == AppointmentStatus.COMPLETED) {
-            notificationService.createNotification(appointment.getClient(), message, com.example.Hospital.security.notifications.NotificationType.APPOINTMENT_UPDATED);
+            notificationService.createNotification(appointment.getClient(), message,
+                    com.example.Hospital.security.notifications.NotificationType.APPOINTMENT_UPDATED);
         } else if (status == AppointmentStatus.CANCELLED) {
-            // Notify client
-            notificationService.createNotification(appointment.getClient(), message, com.example.Hospital.security.notifications.NotificationType.APPOINTMENT_CANCELLED);
+            notificationService.createNotification(appointment.getClient(), message,
+                    com.example.Hospital.security.notifications.NotificationType.APPOINTMENT_CANCELLED);
 
-            // Notify professional
             String profMessage = String.format("Appointment with %s %s for %s has been cancelled",
                     appointment.getClient().getFirstname(),
                     appointment.getClient().getLastname(),
                     appointment.getAppointmentDateTime().toString());
-            notificationService.createNotification(appointment.getProfessional(), profMessage, com.example.Hospital.security.notifications.NotificationType.APPOINTMENT_CANCELLED);
+            notificationService.createNotification(appointment.getProfessional(), profMessage,
+                    com.example.Hospital.security.notifications.NotificationType.APPOINTMENT_CANCELLED);
         }
 
         return appointment;
@@ -127,19 +128,24 @@ public class AppointmentService {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new RuntimeException("Appointment not found"));
 
-        // Send cancellation notifications before deleting
         String clientMessage = String.format("Your appointment with %s %s scheduled for %s has been cancelled",
                 appointment.getProfessional().getFirstname(),
                 appointment.getProfessional().getLastname(),
                 appointment.getAppointmentDateTime().toString());
-        notificationService.createNotification(appointment.getClient(), clientMessage, com.example.Hospital.security.notifications.NotificationType.APPOINTMENT_CANCELLED);
+        notificationService.createNotification(appointment.getClient(), clientMessage,
+                com.example.Hospital.security.notifications.NotificationType.APPOINTMENT_CANCELLED);
 
         String profMessage = String.format("Appointment with %s %s scheduled for %s has been cancelled",
                 appointment.getClient().getFirstname(),
                 appointment.getClient().getLastname(),
                 appointment.getAppointmentDateTime().toString());
-        notificationService.createNotification(appointment.getProfessional(), profMessage, com.example.Hospital.security.notifications.NotificationType.APPOINTMENT_CANCELLED);
+        notificationService.createNotification(appointment.getProfessional(), profMessage,
+                com.example.Hospital.security.notifications.NotificationType.APPOINTMENT_CANCELLED);
 
         appointmentRepository.deleteById(appointmentId);
+    }
+
+    public int getAppointmentCreditCost() {
+        return APPOINTMENT_CREDIT_COST;
     }
 }

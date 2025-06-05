@@ -60,7 +60,11 @@ public class SecurityConfiguration {
                                 .requestMatchers(DELETE, "/api/v1/management/**").hasAnyAuthority(Permission.ADMIN_DELETE.name(), Permission.MANAGER_DELETE.name(), Permission.THERAPIST_DELETE.name())
                                 .requestMatchers(GET, "/api/v1/auth/**").hasAnyAuthority(Permission.ADMIN_READ.name(), Permission.MANAGER_READ.name(), Permission.THERAPIST_READ.name())
                                 .requestMatchers(PATCH, "/api/v1/users/change-password").authenticated()
-                                // Add chat endpoints security
+                                // Payment endpoints security
+                                .requestMatchers(GET, "/api/users/{userId}/credits").authenticated()
+                                .requestMatchers(POST, "/api/payments/process").authenticated()
+                                .requestMatchers("/api/v1/payments/**").authenticated()
+                                // Chat endpoints security
                                 .requestMatchers("/api/v1/chat/**").authenticated()
                                 .requestMatchers(GET, "/api/v1/chat/rooms").authenticated()
                                 .requestMatchers(POST, "/api/v1/chat/rooms/create").authenticated()

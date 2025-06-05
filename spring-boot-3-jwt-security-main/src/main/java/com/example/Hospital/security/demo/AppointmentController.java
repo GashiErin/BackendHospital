@@ -1,9 +1,7 @@
 package com.example.Hospital.security.demo;
 
-import com.example.Hospital.security.appointment.Appointment;
-import com.example.Hospital.security.appointment.AppointmentService;
-import com.example.Hospital.security.appointment.AppointmentStatus;
-import com.example.Hospital.security.appointment.AppointmentType;
+import com.example.Hospital.security.appointment.*;
+import com.example.Hospital.security.exception.InsufficientCreditsException;
 import com.example.Hospital.security.user.User;
 import com.example.Hospital.security.user.UserService;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/appointments")
@@ -21,22 +20,28 @@ public class AppointmentController {
     private final AppointmentService appointmentService;
     private final UserService userService;
 
+    @GetMapping("/cost")
+    public ResponseEntity<Map<String, Integer>> getAppointmentCost() {
+        return ResponseEntity.ok(Map.of("creditsCost", appointmentService.getAppointmentCreditCost()));
+    }
+
     @PostMapping("/create")
-    public ResponseEntity<Appointment> createAppointment(
+    public ResponseEntity<?> createAppointment(
             @RequestParam Integer clientId,
             @RequestParam Integer professionalId,
             @RequestParam LocalDateTime appointmentDateTime,
             @RequestParam AppointmentType type,
             @RequestParam(required = false) String notes) {
 
-        System.out.println("Creating appointment with params: " +
-                "clientId=" + clientId +
-                ", professionalId=" + professionalId +
-                ", dateTime=" + appointmentDateTime +
-                ", type=" + type);
-
-        return ResponseEntity.ok(appointmentService.createAppointment(
-                clientId, professionalId, appointmentDateTime, type, notes));
+        try {
+            Appointment appointment = appointmentService.createAppointment(
+                    clientId, professionalId, appointmentDateTime, type, notes);
+            return ResponseEntity.ok(appointment);
+        } catch (InsufficientCreditsException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
     @GetMapping("/client")
@@ -72,31 +77,17 @@ public class AppointmentController {
             @PathVariable Integer id,
             @RequestParam AppointmentStatus status,
             Authentication authentication) {
-
-        // Log the incoming request
-        System.out.println("Updating appointment status: id=" + id + ", status=" + status);
-
-        // Verify the user has permission (is the professional for this appointment)
         User user = userService.findByEmail(authentication.getName())
                 .orElseThrow(() -> new RuntimeException("User not found"));
-
-        // Update the status
-        Appointment updatedAppointment = appointmentService.updateAppointmentStatus(id, status);
-
-        // Log the result
-        System.out.println("Appointment status updated successfully: " + updatedAppointment.getId());
-
-        return ResponseEntity.ok(updatedAppointment);
+        return ResponseEntity.ok(appointmentService.updateAppointmentStatus(id, status));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteAppointment(
             @PathVariable Integer id,
             Authentication authentication) {
-
         User user = userService.findByEmail(authentication.getName())
                 .orElseThrow(() -> new RuntimeException("User not found"));
-
         appointmentService.deleteAppointment(id);
         return ResponseEntity.noContent().build();
     }
