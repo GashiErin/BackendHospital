@@ -31,12 +31,12 @@ public class ChatRoom {
     private LocalDateTime lastMessageAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", foreignKey = @ForeignKey(name = "fk_chatroom_user"))
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "tokens", "authorities", "password"})
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "professional_id")
+    @JoinColumn(name = "professional_id", foreignKey = @ForeignKey(name = "fk_chatroom_professional"))
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "tokens", "authorities", "password"})
     private User professional;
 

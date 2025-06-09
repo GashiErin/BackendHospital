@@ -22,11 +22,11 @@ public class Appointment {
     private Long id;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "client_id", nullable = false)
+    @JoinColumn(name = "client_id")
     private User client;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "professional_id", nullable = false)
+    @JoinColumn(name = "professional_id")
     private User professional;
 
     @Column(nullable = false)
@@ -52,4 +52,4 @@ public class Appointment {
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
     }
-} //api.
+}

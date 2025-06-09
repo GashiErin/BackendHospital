@@ -2,6 +2,16 @@ package com.example.Hospital.security.user;
 
 import com.example.Hospital.security.exception.InvalidPasswordException;
 import com.example.Hospital.security.token.TokenRepository;
+import com.example.Hospital.security.chat.MessageRepository;
+import com.example.Hospital.security.chat.ChatRoomRepository;
+import com.example.Hospital.security.appointment.AppointmentHistoryRepository;
+import com.example.Hospital.security.appointment.AppointmentRepository;
+import com.example.Hospital.security.appointment.Appointment;
+import com.example.Hospital.security.appointment.AppointmentHistory;
+import com.example.Hospital.security.notifications.NotificationRepository;
+import com.example.Hospital.security.notifications.Notification;
+import com.example.Hospital.security.payment.PaymentRepository;
+import com.example.Hospital.security.payment.Payment;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -12,6 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,6 +35,12 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final UserRepository repository;
     private final TokenRepository tokenRepository;
+    private final ChatRoomRepository chatRoomRepository;
+    private final MessageRepository messageRepository;
+    private final AppointmentHistoryRepository appointmentHistoryRepository;
+    private final AppointmentRepository appointmentRepository;
+    private final NotificationRepository notificationRepository;
+    private final PaymentRepository paymentRepository;
 
     public Optional<User> findByEmail(String email) {
         return repository.findByEmail(email);
@@ -87,8 +104,58 @@ public class UserService {
     public void deleteUser(Integer userId) {
         var user = repository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        tokenRepository.deleteAllByUserId(userId);
-        repository.delete(user);
+
+        try {
+            logger.debug("Starting deletion process for user: {}", userId);
+
+            // Delete all notifications where user is involved (as recipient, patient, or doctor)
+            List<Notification> userNotifications = notificationRepository.findByRecipientIdOrderByCreatedAtDesc(userId);
+            List<Notification> patientNotifications = notificationRepository.findByPatientId(userId);
+            List<Notification> doctorNotifications = notificationRepository.findByDoctorId(userId);
+            
+            notificationRepository.deleteAll(userNotifications);
+            notificationRepository.deleteAll(patientNotifications);
+            notificationRepository.deleteAll(doctorNotifications);
+            logger.debug("Deleted notifications for user - recipient: {}, patient: {}, doctor: {}", 
+                userNotifications.size(), patientNotifications.size(), doctorNotifications.size());
+
+            // Delete all payment records for the user
+            List<Payment> userPayments = paymentRepository.findByUserId(userId);
+            paymentRepository.deleteAll(userPayments);
+            logger.debug("Deleted {} payment records for user", userPayments.size());
+
+            // Delete appointment histories and appointments
+            List<Appointment> userAppointments = new ArrayList<>();
+            userAppointments.addAll(user.getClientAppointments());
+            userAppointments.addAll(user.getProfessionalAppointments());
+            
+            for (Appointment appointment : userAppointments) {
+                // Delete appointment histories
+                List<AppointmentHistory> histories = appointmentHistoryRepository.findByAppointmentId(appointment.getId().intValue());
+                appointmentHistoryRepository.deleteAll(histories);
+            }
+
+            // Now safe to delete appointments
+            appointmentRepository.deleteAll(userAppointments);
+
+            // Delete chat rooms and messages
+            var userChatRooms = chatRoomRepository.findByUser_Id(userId);
+            for (var chatRoom : userChatRooms) {
+                messageRepository.deleteAll(chatRoom.getMessages());
+            }
+            chatRoomRepository.deleteAll(userChatRooms);
+
+            // Delete tokens
+            tokenRepository.deleteAllByUserId(userId);
+
+            // Finally delete the user
+            repository.delete(user);
+            logger.info("Successfully deleted user: {}", userId);
+
+        } catch (Exception e) {
+            logger.error("Error deleting user: {}", userId, e);
+            throw e;
+        }
     }
 
     public User getCurrentUser(String email) {

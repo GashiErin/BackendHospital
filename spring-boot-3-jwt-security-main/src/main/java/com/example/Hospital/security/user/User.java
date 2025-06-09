@@ -1,6 +1,7 @@
 package com.example.Hospital.security.user;
 
 import com.example.Hospital.security.token.Token;
+import com.example.Hospital.security.appointment.Appointment;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
@@ -29,7 +30,7 @@ public class User implements UserDetails {
   private String firstname;
   private String lastname;
   private String email;
-  
+
   @JsonIgnore
   private String password;
   private String country;
@@ -41,14 +42,20 @@ public class User implements UserDetails {
   @Enumerated(EnumType.STRING)
   private Role role;
 
-  @OneToMany(mappedBy = "user")
+  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
   @JsonIgnore
   private List<Token> tokens;
 
+  @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true)
+  @JsonIgnore
+  private List<Appointment> clientAppointments;
+
+  @OneToMany(mappedBy = "professional", cascade = CascadeType.ALL, orphanRemoval = true)
+  @JsonIgnore
+  private List<Appointment> professionalAppointments;
+
   @Column(nullable = false)
   private Integer credits = 0;
-
-
 
   public Integer getCredits() {
     return credits;
@@ -99,6 +106,4 @@ public class User implements UserDetails {
   public boolean isEnabled() {
     return true;
   }
-
-  //update
 }

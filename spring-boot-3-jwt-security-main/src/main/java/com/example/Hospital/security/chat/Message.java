@@ -23,12 +23,12 @@ public class Message {
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sender_id")
+    @JoinColumn(name = "sender_id", foreignKey = @ForeignKey(name = "fk_message_sender"))
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "tokens", "authorities", "password"})
     private User sender;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "receiver_id")
+    @JoinColumn(name = "receiver_id", foreignKey = @ForeignKey(name = "fk_message_receiver"))
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "tokens", "authorities", "password"})
     private User receiver;
 
@@ -42,7 +42,7 @@ public class Message {
     private boolean read;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "chat_room_id")
+    @JoinColumn(name = "chat_room_id", foreignKey = @ForeignKey(name = "fk_message_chatroom"))
     @JsonBackReference
     private ChatRoom chatRoom;
 
