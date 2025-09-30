@@ -45,23 +45,7 @@ public class SecurityApplication {
 				System.out.println("Admin token: " + service.authenticate(loginRequest).getAccessToken());
 			}
 
-			if (userRepository.findByEmail("manager@mail.com").isEmpty()) {
-				var manager = RegisterRequest.builder()
-						.firstname("Manager")
-						.lastname("Manager")
-						.email("manager@mail.com")
-						.password("password")
-						.role(MANAGER)
-						.build();
-				System.out.println("Manager token: " + service.register(manager).getAccessToken());
-			} else {
-				System.out.println("Manager already exists");
-				var loginRequest = AuthenticationRequest.builder()
-						.email("manager@mail.com")
-						.password("password")
-						.build();
-				System.out.println("Manager token: " + service.authenticate(loginRequest).getAccessToken());
-			}
+
 		};
 	}
 }
