@@ -2,14 +2,10 @@ package com.example.Hospital.security.user;
 
 import com.example.Hospital.security.exception.InvalidPasswordException;
 import com.example.Hospital.security.token.TokenRepository;
-import com.example.Hospital.security.chat.MessageRepository;
-import com.example.Hospital.security.chat.ChatRoomRepository;
 import com.example.Hospital.security.appointment.AppointmentHistoryRepository;
 import com.example.Hospital.security.appointment.AppointmentRepository;
 import com.example.Hospital.security.appointment.Appointment;
 import com.example.Hospital.security.appointment.AppointmentHistory;
-import com.example.Hospital.security.notifications.NotificationRepository;
-import com.example.Hospital.security.notifications.Notification;
 import com.example.Hospital.security.payment.PaymentRepository;
 import com.example.Hospital.security.payment.Payment;
 import jakarta.transaction.Transactional;
@@ -35,11 +31,8 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final UserRepository repository;
     private final TokenRepository tokenRepository;
-    private final ChatRoomRepository chatRoomRepository;
-    private final MessageRepository messageRepository;
     private final AppointmentHistoryRepository appointmentHistoryRepository;
     private final AppointmentRepository appointmentRepository;
-    private final NotificationRepository notificationRepository;
     private final PaymentRepository paymentRepository;
 
     public Optional<User> findByEmail(String email) {
@@ -108,17 +101,6 @@ public class UserService {
         try {
             logger.debug("Starting deletion process for user: {}", userId);
 
-            // Delete all notifications where user is involved (as recipient, patient, or doctor)
-            List<Notification> userNotifications = notificationRepository.findByRecipientIdOrderByCreatedAtDesc(userId);
-            List<Notification> patientNotifications = notificationRepository.findByPatientId(userId);
-            List<Notification> doctorNotifications = notificationRepository.findByDoctorId(userId);
-            
-            notificationRepository.deleteAll(userNotifications);
-            notificationRepository.deleteAll(patientNotifications);
-            notificationRepository.deleteAll(doctorNotifications);
-            logger.debug("Deleted notifications for user - recipient: {}, patient: {}, doctor: {}", 
-                userNotifications.size(), patientNotifications.size(), doctorNotifications.size());
-
             // Delete all payment records for the user
             List<Payment> userPayments = paymentRepository.findByUserId(userId);
             paymentRepository.deleteAll(userPayments);
@@ -128,22 +110,14 @@ public class UserService {
             List<Appointment> userAppointments = new ArrayList<>();
             userAppointments.addAll(user.getClientAppointments());
             userAppointments.addAll(user.getProfessionalAppointments());
-            
+
             for (Appointment appointment : userAppointments) {
-                // Delete appointment histories
-                List<AppointmentHistory> histories = appointmentHistoryRepository.findByAppointmentId(appointment.getId().intValue());
+                List<AppointmentHistory> histories =
+                        appointmentHistoryRepository.findByAppointmentId(appointment.getId().intValue());
                 appointmentHistoryRepository.deleteAll(histories);
             }
 
-            // Now safe to delete appointments
             appointmentRepository.deleteAll(userAppointments);
-
-            // Delete chat rooms and messages
-            var userChatRooms = chatRoomRepository.findByUser_Id(userId);
-            for (var chatRoom : userChatRooms) {
-                messageRepository.deleteAll(chatRoom.getMessages());
-            }
-            chatRoomRepository.deleteAll(userChatRooms);
 
             // Delete tokens
             tokenRepository.deleteAllByUserId(userId);
